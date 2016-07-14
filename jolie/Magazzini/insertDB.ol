@@ -45,16 +45,16 @@ main {
   scope ( insertTable ) {
     install ( SQLException => println@Console("Errore in insert pezzo_magazzino")() );
     updateRequest =
-      "INSERT INTO pezzo_magazzino(id_pezzo, id_magazzino, quantita) VALUES" +
-      "(0, 1, 5),"
-      "(1, 1, 3),"
-      "(2, 1, 2),"
-      "(0, 2, 5),"
-      "(5, 2, 3),"
-      "(6, 2, 2),"
-      "(4, 3, 5),"
-      "(3, 3, 3),"
-      "(5, 3, 2)"
+      "INSERT INTO pezzo_magazzino(id_pezzo, id_magazzino, quantita, riservati) VALUES" +
+      "(0, 1, 5, 0),"
+      "(1, 1, 3, 0),"
+      "(2, 1, 2, 0),"
+      "(0, 2, 5, 0),"
+      "(5, 2, 3, 0),"
+      "(6, 2, 2, 0),"
+      "(4, 3, 5, 0),"
+      "(3, 3, 3, 0),"
+      "(5, 3, 2, 0)"
   };
 
 

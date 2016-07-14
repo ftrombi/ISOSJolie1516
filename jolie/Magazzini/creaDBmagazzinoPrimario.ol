@@ -40,6 +40,7 @@ main {
       "(id_pezzo INTEGER NOT NULL," + 
       "id_magazzino INTEGER NOT NULL, " +
       "quantita INTEGER NOT NULL," +
+      "riservati INTEGER NOT NULL," +
       "FOREIGN KEY (id_pezzo) REFERENCES pezzo(id)," +
       "FOREIGN KEY (id_magazzino) REFERENCES magazzino(id)," +
       "PRIMARY KEY (id_pezzo, id_magazzino))";
