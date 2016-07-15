@@ -5,6 +5,5 @@ interface InterfacciaMagazzinoPrimario {
 	verificaDisponibilitaERiservaPezzi ( Ordine )( Booleano ),
 	eseguoOrdine ( Ordine )( ArrayBooleani ),
   verificaDisponibilitaPezziNelDBERiservaDisponibili (Ordine)(Prodotto),
-  annullamentoOrdine ( Ordine )( Booleano ),
-  rilascioPezziRiservatiNelDB (Ordine)(Prodotto)
+  annulloOrdine (Ordine)(Booleano)
 }
