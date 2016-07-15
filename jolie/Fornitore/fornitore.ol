@@ -19,12 +19,14 @@ define log {
 main
 {
 	[richiestaRiservaPezzi( prodotto ) ( risultatoRiserva ) {
+    println@Console( "Richiesta riserva pezzi accolta." )()
     scope( richiestaRiservaPezzi ) {
         risultatoRiserva.valore = true
     }
   }] {daStampare = "Eseguita richiestaRiservaPezzi"; log}
 
   [annullaRiservaPezzi( prodotto ) ( esitoAnnullamento ) {
+    println@Console( "Riserva pezzi annullata correttamente." )()
     scope( annullaRiservaPezzi ) {
       for (i = 0, i < #prodotto.pezzi, ++i) {
         esitoAnnullamento.booleano[i] = true
