@@ -14,17 +14,14 @@ type Cliente:void {
 }
 
 type Indirizzo:void {
-  .nazione:string
   .provincia:string
   .citta:string
-  .via:string
-  .cap:string
 }
 
-type ConfermeSpedizioni:void {
-  .conferme*:bool
+type ArrayBooleani:void {
+  .booleano*:bool
 }
 
-type InformazioniSpedizioni:void {
-  .dateSpedizioni*:string
+type Booleano:void{
+  .valore:bool
 }

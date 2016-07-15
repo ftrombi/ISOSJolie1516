@@ -28,11 +28,8 @@ main {
     updateRequest =
       "CREATE TABLE magazzino" +
       "(id INTEGER PRIMARY KEY," +
-      "nazione VARCHAR(50) NOT NULL," +
       "provincia VARCHAR(50) NOT NULL," +
-      "citta VARCHAR(50) NOT NULL," +
-      "via VARCHAR(50) NOT NULL," +
-      "cap VARCHAR(50) NOT NULL)";
+      "citta VARCHAR(50) NOT NULL)";
     update@Database( updateRequest )( ret );
 
     updateRequest =
