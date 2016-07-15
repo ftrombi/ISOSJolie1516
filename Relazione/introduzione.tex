@@ -1,0 +1,81 @@
+\section*{Introduzione}
+Il progetto consiste nell'implementazione di una \textit{Service
+Oriented Architecture} (SOA) che rispecchi le necessit\`a di un'azienda
+fittizia ma con processi verosimili.
+
+L'introduzione di tale relazione descrive brevemente il dominio del
+problema e i vincoli imposti alla soluzione.
+
+Il primo capitolo si concentra sulla presentazione degli attori
+coinvolti nei processi implementati.
+
+Il secondo capitolo riguarda la descrizione dello schema BPMN utilizzato
+per la progettazione dei processi che compongono la soluzione.
+
+Il terzo capitolo mostra i dettagli implementativi della soluzione,
+soffermandosi dunque su aspetti pi\`u tecnici.
+
+Le conclusioni mostrano una panoramica sulle problematiche riscontrate
+ed un'appendice contenente qualche informazione aggiuntiva sulle scelte
+progettuali adottate.
+
+\subsection*{Dominio del problema}
+L'azienda presa come esempio \`e la \textit{ACME}, che si occupa di
+fornire cicli assemblati oppure componenti atomiche.
+La ACME si basa su un sistema di magazzini, cos\`i organizzato: esiste
+un magazzino primario, adibito alla coordinazione di un insieme di
+magazzini secondari. Il magazzino primario contiene anche l'officina,
+per l'assemblaggio dei cicli.
+
+La ACME riceve dunque ordini dai clienti, con i quali interagisce
+durante diverse fasi: l'accertamento delle compatibilit\`a delle
+eventuali customizzazioni, l'accettazione del preventivo, il pagamento
+dell'acconto e del saldo. Gli ordini contengono una serie di
+particolari, quali modello base, la colorazione e le eventuali
+customizzazioni per gruppo frenante, gruppo sterzo, trasmissione e
+ammortizzatori.
+
+L'azienda deve interagire con una ditta di spedizioni per consegnare gli
+oggetti ai clienti.
+Normalmente le spedizioni partono dal magazzino primario; ma nel caso
+l'ordine contenga solamente componenti che non richiedono assemblaggio,
+\`e possibile spedire direttamente dal magazzino pi\`u vicino al
+cliente, separatamente.
+Quando si procede all'assemblaggio, si riservano le componenti
+necessarie e le si spostano, se necessario, nel magazzino primario;
+se non presenti vengono ordinate presso un fornitore esterno, unico.
+Il costo dell'ordine viene calcolato tramite costo delle componenti e
+costo di spedizione.
+
+I pagamenti che il cliente effettua verso ACME vengono verificati
+tramite un istituto di credito.
+Diversi particolari non ancora indicati verranno mostrati in seguito
+insieme all'implementazione adottata.
+
+\subsection*{Vincoli}
+I vincoli imposti alla soluzione sono stati i seguenti:
+\begin{itemize}
+  \item implementazione della gestione dei magazzini tramite SOA di
+  servizi Jolie;
+  \item esternalizzazione di alcune capability, quali il calcolo delle
+  distanze \linebreak geografiche, l'istituto di credito e il fornitore delle
+  componenti;
+  \item utilizzo di \textit{API REST} per l'implementazione dei servizi
+  di calcolo delle distanze geografiche e dell'istituto bancario;
+  \item utilizzo di logica elementare per l'implementazione dei servizi,
+  in modo da simulare comportamenti verosimili.
+\end{itemize}
+
+\subsection*{Descrizione della soluzione}
+L'implementazione della soluzione \`e stata affrontata basandosi sulle
+tre componenti principali richieste. Si sono dunque progettati ed
+implementati:
+\begin{itemize}
+  \item lo schema BPMN del processo principale dell'azienda ACME,
+  utilizzando il tool di progettazione grafica \textit{Signavio};
+  \item il processo principale dell'ACME utilizzando un sistema BPMS,
+  \textit{Camunda};
+  \item la gestione dei magazzini, tramite una SOA di servizi Jolie;
+  \item le capability esterne, sotto forma di servizi, utilizzando
+  Jolie.
+\end{itemize}
