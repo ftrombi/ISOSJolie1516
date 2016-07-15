@@ -20,7 +20,8 @@ main{
   ordine.prodotti[1].pezzi[1] = 3;
   ordine.prodotti[1].pezzi[2] = 4;
 
+  verificaDisponibilitaERiservaPezzi@MagazzinoPrimario ( ordine )( risultato );
   annulloOrdine@MagazzinoPrimario ( ordine )( risultato );
-
+  
   println@Console(risultato)()
 }

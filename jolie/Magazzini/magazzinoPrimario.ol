@@ -121,7 +121,8 @@ init {
 	leggiImpostazioni;
 	inizializzaInfoMagazzini;
 
-	magazzinoPrimario << magazzini[0]
+	magazzinoPrimario << magazzini[0];
+  officina << magazzini[0]
 }
 
 main {
@@ -130,14 +131,13 @@ main {
 		scope( verificaDisponibilitaERiservaPezzi ){
       verificaDisponibilitaPezziNelDBERiservaDisponibili@MagazzinoPrimario(ordine)(idPezziMancanti);
       risultato.valore = true;
-      daStampare = "#idPezziMancanti.pezzi " + #idPezziMancanti.pezzi; log;
       for (i = 0, i < #idPezziMancanti.pezzi, i++) {
         pezzoMancante.valore = idPezziMancanti.pezzi[i];
-        daStampare = "pezzoMancante " + pezzoMancante.valore; log;
         richiestaRiservaPezzi@Fornitore(pezzoMancante)(confermaRiservaAvvenuta);     
         if (confermaRiservaAvvenuta.valore == false){
           risultato.valore = false
-        }
+        };
+        daStampare = "Pezzo " + pezzoMancante.valore + " ordinato al fornitore"; log
       }
 		}
 	}] {daStampare = "Eseguita verificaDisponibilitaERiservaPezzi"; log}
@@ -146,9 +146,13 @@ main {
     scope(verificaDisponibilitaPezziNelDBERiservaDisponibili) {
       indiceArray = 0;
       for (i = 0, i < #ordine.prodotti, ++i){
+        necessarioMontaggio = false;
+        if (#ordine.prodotti[i].pezzi > 1){
+          necessarioMontaggio = true
+        };
         for (j = 0, j < #ordine.prodotti[i].pezzi, ++j){
           scope(selection) {
-            daStampare = "Pezzo query request " + ordine.prodotti[i].pezzi[j]; log;
+            daStampare = "Pezzo richiesto " + ordine.prodotti[i].pezzi[j]; log;
             
             connettiDB;
             queryRequest = 
@@ -156,7 +160,6 @@ main {
               "WHERE id_pezzo = :id_pez AND quantita > riservati";
             queryRequest.id_pez = ordine.prodotti[i].pezzi[j];
             query@Database( queryRequest )( queryResponse );
-            daStampare = "Eseguita query request"; log;
             disconnettiDB;
 
             idMagazzinoPiuVicino = null;
@@ -165,14 +168,19 @@ main {
             quantitaMagazzinoPiuVicino = null;
             
             for(k = 0, k < #queryResponse.row, ++k) {
-              daStampare = "Query Response: " + queryResponse.row[k].ID_MAGAZZINO + " riservati " + queryResponse.row[i].RISERVATI; log;
+              daStampare = "Trovati " + queryResponse.row[k].QUANTITA + " nel magazzino: " + queryResponse.row[k].ID_MAGAZZINO + ", di cui riservati " + queryResponse.row[i].RISERVATI; log;
               richiestaDistanza.origin.citta = magazzini[queryResponse.row[k].ID_MAGAZZINO].citta;
               richiestaDistanza.origin.provincia = magazzini[queryResponse.row[k].ID_MAGAZZINO].provincia;
-              richiestaDistanza.destination.citta = ordine.cliente.indirizzo.citta;
-              richiestaDistanza.destination.provincia = ordine.cliente.indirizzo.provincia;
+              if (necessarioMontaggio == true) {
+                richiestaDistanza.destination.citta = officina.citta;
+                richiestaDistanza.destination.provincia = officina.provincia
+              } else {
+                richiestaDistanza.destination.citta = ordine.cliente.indirizzo.citta;
+                richiestaDistanza.destination.provincia = ordine.cliente.indirizzo.provincia
+              };
               getBestDistance@CalcoloDistanze( richiestaDistanza ) ( rispostaDistanza );
               if (rispostaDistanza.status == "OK") {
-                daStampare = "Distanza: " + rispostaDistanza.distance; log;
+                daStampare = "Distante: " + rispostaDistanza.distance; log;
                 if (distanzaMagazzinoPiuVicino == null){
                   idMagazzinoPiuVicino = queryResponse.row[k].ID_MAGAZZINO;
                   distanzaMagazzinoPiuVicino = rispostaDistanza.distance;
@@ -188,8 +196,8 @@ main {
                 }
               }
             };
+            daStampare = "Magazzino più vicino: " + idMagazzinoPiuVicino; log;
             daStampare = "Distanza più vicino: " + distanzaMagazzinoPiuVicino; log;
-            daStampare = "ID più vicino: " + idMagazzinoPiuVicino; log;
             daStampare = "Numero riservati più vicino: " + numeroRiservatiMagazzinoPiuVicino; log;
             if( idMagazzinoPiuVicino == null ) {
               idPezziMancanti.pezzi[indiceArray] = ordine.prodotti[i].pezzi[j];
@@ -203,7 +211,7 @@ main {
               updateRequest.id_pez = ordine.prodotti[i].pezzi[j] + 0;
               update@Database( updateRequest )( ret );
 
-              daStampare = "Uscito UPDATE sul db " + ret; log;
+              daStampare = "Elemento riservato sul db "; log;
               disconnettiDB
             }
           }
@@ -214,11 +222,15 @@ main {
 
   [annulloOrdine (ordine)(risultato){
     scope (annulloOrdine){
-      daStampare = "Eseguo annulloOrdine"; log;
+      daStampare = "Inizio ad annullare l'ordine"; log;
       indiceArray = 0;
       for (i = 0, i < #ordine.prodotti, ++i){
+        necessarioMontaggio = false;
+        if (#ordine.prodotti[i].pezzi > 1){
+          necessarioMontaggio = true
+        };
         for (j = 0, j < #ordine.prodotti[i].pezzi, ++j){
-          daStampare = "Pezzo query request " + ordine.prodotti[i].pezzi[j]; log;
+          daStampare = "Pezzo da annullare " + ordine.prodotti[i].pezzi[j]; log;
 
           connettiDB;
           queryRequest = 
@@ -226,7 +238,6 @@ main {
             "WHERE id_pezzo = :id_pez AND riservati > 0";
           queryRequest.id_pez = ordine.prodotti[i].pezzi[j];
           query@Database( queryRequest )( queryResponse );
-          daStampare = "Eseguita query request"; log;
           disconnettiDB;
 
           idMagazzinoPiuVicino = null;
@@ -235,14 +246,18 @@ main {
           quantitaMagazzinoPiuVicino = null;
           
           for(k = 0, k < #queryResponse.row, ++k) {
-            daStampare = "Query Response: " + queryResponse.row[k].ID_MAGAZZINO + " riservati " + queryResponse.row[i].RISERVATI; log;
+            daStampare = "Trovati " + queryResponse.row[k].QUANTITA + " nel magazzino: " + queryResponse.row[k].ID_MAGAZZINO + ", di cui riservati " + queryResponse.row[i].RISERVATI; log;
             richiestaDistanza.origin.citta = magazzini[queryResponse.row[k].ID_MAGAZZINO].citta;
             richiestaDistanza.origin.provincia = magazzini[queryResponse.row[k].ID_MAGAZZINO].provincia;
-            richiestaDistanza.destination.citta = ordine.cliente.indirizzo.citta;
-            richiestaDistanza.destination.provincia = ordine.cliente.indirizzo.provincia;
+            if (necessarioMontaggio == true) {
+              richiestaDistanza.destination.citta = officina.citta;
+              richiestaDistanza.destination.provincia = officina.provincia
+            } else {
+              richiestaDistanza.destination.citta = ordine.cliente.indirizzo.citta;
+              richiestaDistanza.destination.provincia = ordine.cliente.indirizzo.provincia
+            };
             getBestDistance@CalcoloDistanze( richiestaDistanza ) ( rispostaDistanza );
             if (rispostaDistanza.status == "OK") {
-              daStampare = "Distanza: " + rispostaDistanza.distance; log;
               if (distanzaMagazzinoPiuVicino == null){
                 idMagazzinoPiuVicino = queryResponse.row[k].ID_MAGAZZINO;
                 distanzaMagazzinoPiuVicino = rispostaDistanza.distance;
@@ -258,9 +273,7 @@ main {
               }
             }
           };
-          daStampare = "Distanza più vicino: " + distanzaMagazzinoPiuVicino; log;
-          daStampare = "ID più vicino: " + idMagazzinoPiuVicino; log;
-          daStampare = "Numero riservati più vicino: " + numeroRiservatiMagazzinoPiuVicino; log;
+          daStampare = "Era riservato nel magazzino: " + idMagazzinoPiuVicino; log;
           if( idMagazzinoPiuVicino == null ) {
             idPezziMancanti.pezzi[indiceArray] = ordine.prodotti[i].pezzi[j];
             ++indiceArray
@@ -273,7 +286,7 @@ main {
             updateRequest.id_pez = ordine.prodotti[i].pezzi[j] + 0;
             update@Database( updateRequest )( ret );
 
-            daStampare = "Uscito UPDATE sul db " + ret; log;
+            daStampare = "Cancellata la riserva del pezzo "; log;
             disconnettiDB
           }
         }
@@ -281,11 +294,11 @@ main {
       risultato.valore = true;
       for (i = 0, i < #idPezziMancanti.pezzi, i++) {
         pezzoMancante.valore = idPezziMancanti.pezzi[i];
-        daStampare = "pezzoMancante " + pezzoMancante.valore; log;
         annullaRiservaPezzi@Fornitore(pezzoMancante)(confermaRiservaAvvenuta);     
         if (confermaRiservaAvvenuta.valore == false){
           risultato.valore = false
-        }
+        };
+        daStampare = "Annullato dal fornitore il pezzo " + pezzoMancante.valore; log
       }
     }
   }] {daStampare = "Eseguita annulloOrdine"; log}
