@@ -26,9 +26,7 @@ main
 
   [annullaRiservaPezzi( prodotto ) ( esitoAnnullamento ) {
     scope( annullaRiservaPezzi ) {
-      for (i = 0, i < #prodotto.pezzi, ++i) {
-        esitoAnnullamento.booleano[i] = true
-      }
+      esitoAnnullamento.valore = true
     }
   }] {daStampare = "Eseguita annullaRiservaPezzi"; log}
 }
