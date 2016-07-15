@@ -1,0 +1,79 @@
+\section{Attori}
+Come prima cosa \`e necessario definire con chiarezza quali sono i vari
+``attori'' che formano il sistema della soluzione.
+Si proceder\`a dunque con una panoramica generale su di essi.
+
+\subsection{ACME}
+L'attore principale della soluzione \`e l'azienda ACME: data per\`o la
+dimensione di tale entit\`a si \`e ritenuto utile suddividerla in
+diversi attori, che corrispondono ai diversi dipartimenti dell'azienda.
+
+\subsubsection{Ufficio}
+L'ufficio \`e l'attore che modella il processo principale dell'azienda
+ACME, occupandosi dell'interazione con il cliente, con il magazzino
+primario (e dunque con i magazzini secondari) e con l'istituto di
+credito. Le modalit\`a di interazione con gli altri attori verr\`a
+descritta con precisione nella sezione relativa alla progettazione dello
+schema BPMN.
+
+\subsubsection{Magazzino}
+I magazzini possono essere di due categorie: primario e secondario.
+I magazzini vengono identificati tramite un {\tt id} numerico univoco,
+assegnato nella seguente modalit\`a: il magazzino primario ha
+{\tt id = 0}, e i magazzini secondari vengono numerati progressivamente
+a partire da questo. In questo progetto sono stati implementati un
+magazzino primario (dunque, {\tt id = 0}) e due magazzini secondari
+({\tt id = 1, 2}).
+
+Il magazzino primario funge da coordinatore dei magazzini secondari,
+ponendosi dunque come intermediario tra l'ufficio ed i magazzini
+secondari. \linebreak
+Il magazzino primario si occupa inoltre di tutte le funzioni
+dell'officina e del reparto che si occupa della preparazione delle
+spedizioni.
+Il magazzino primario comunica inoltre con la ditta di spedizione e con
+il fornitore delle componenti.
+
+\subsubsection{Officina}
+Come detto in precedenza, l'officina \`e contenuta all'interno della
+stessa struttura del magazzino primario. \`E la sede delle operazioni di
+assemblaggio delle componenti e dei cicli. All'interno della nostra
+soluzione, \`e un attore ``fittizio'', poich\'e le sue funzionalit\`a
+vengono completamente implementate all'interno delle operazioni del
+magazzino primario.
+
+\subsection{Cliente}
+Il cliente \`e l'attore che inizia il processo principale dell'azienda
+ACME.
+Come l'officina, non gode di un'implementazione effettiva, ma viene
+simulato tramite richieste e risposte nelle interazioni con l'ufficio.
+Un cliente pu\`o essere di due tipologie diverse: un privato o un
+rivenditore. Tale distinzione non \`e per\`o rilevante dal punto di
+vista dell'implementazione.
+
+\subsection{Fornitore}
+Il fornitore \`e l'attore che si occupa della fornitura delle componenti
+non presenti nei magazzini. Se durante la ricerca di una componente nei
+magazzini essa non viene trovata, viene mandata una richiesta al
+fornitore, che si occuper\`a di spedirlo al magazzino principale. Come
+scelta, si consideri che il fornitore avr\`a sempre le componenti
+richieste dal magazzino disponibili. La gestione di altre operazioni non
+viene considerata.
+
+\subsection{Istituto di credito}
+L'istituto di credito \`e un attore che deve simulare la verifica della
+solvibilit\`a di un cliente, in base ad un bonifico, identificato da un
+numero univoco. Le interazioni avvengono solamente con l'ufficio.
+L'implementazione simula in maniera semplice la generazione di un esito,
+tramite un sistema implementato nel seguente modo: viene selezionato un
+numero casuale, e se esso \`e minore di {\tt 0.3}, l'istituto
+restituisce {\tt false}; altrimenti restituisce {\tt true}. Si \`e
+preferito ridurre le possibilit\`a che uscisse un esito negativo per
+rendere pi\`u verosimile la soluzione. Non sono previste altre
+operazioni.
+
+\subsection{Ufficio legale}
+L'ufficio legale \`e un attore fittizio, senza implementazione. Il suo
+unico ruolo \`e quello di ricevere le notifiche di mancato pagamento da
+parte dell'ufficio. Non sono previste operazioni che coinvolgano
+ulteriormente tale attore.

@@ -1,0 +1,128 @@
+\section{Diagramma BPMN}
+Il diagramma BPMN \`e stato realizzato utilizzando il software di
+modellazione online \textit{Signavio}.
+Sono state modellate diverse \textit{pool}: la principale, in chiaro,
+\`e quella dell'azienda ACME, suddivisa al proprio interno in tre
+\textit{lane}, corrispondenti all'ufficio, alla gestione del magazzino
+ed all'officina.
+Sono state poi modellate alcune \textit{collapsed pool}, che
+rappresentano processi di organizzazioni esterne alla ACME: il cliente,
+il fornitore, l'istituto di credito, l'ufficio legale e la ditta di
+spedizioni.
+
+\subsection{Descrizione del processo ACME}
+Il processo dell'azienda ACME da noi descritto viene iniziato dalla
+ricezione di un ordine, inviato dalla \textit{collapsed pool} del
+cliente.
+L'ordine viene catturato da un \textit{message start event}.
+Ricevuto l'ordine, esso viene controllato per verificare la presenza di customizzazioni. Un \textit{exclusive gateway} identifica i due esiti possibili: o le customizzazioni sono compatibili, oppure sono assenti o compatibili.
+Nel caso di incompatibilit\`a riscontrate, viene inviato un messaggio al cliente, contenente il rifiuto dell'ordine. Tale azione viene implementata tramite un \textit{send task}. Eseguito questo, il processo termina.
+Nel caso le customizzazioni siano invece compatibili, il flusso del processo passa nella \textit{lane} della Gestione Magazzini.
+
+Come prima cosa viene verificata la disponibilit\`a dei pezzi che compongono l'ordine: un \textit{exclusive gateway} divide il flusso del processo nei due possibili esiti.
+Nel caso siano presenti tutti i pezzi, si entra in un \textit{parallel expanded subprocess}, chiamato Riserva pezzi. Al suo interno, viene controlla la tipologia di ogni pezzo, in modo da poter prendere la giusta strada. Un \textit{exclusive gateway} modella questa divisione. Nel caso il pezzo sia una componente atomica o un accessorio, viene eseguita una riserva del pezzo dal magazino pi\`u vicino al cliente; nel caso sia una componente necessaria per l'assemblaggio ciclo, verr\`a riservato nel magazzino pi\`u vicino all'officina.
+Nel caso non vengano trovati tutti i pezzi nei magazzini .... DA COMPLETARE
+
+Conclusa questa parte, il flusso del processo torna nella \textit{lane} dell'Ufficio, dove viene composto il preventivo per il cliente.
+Nel caso il preventivo superi una certa cifra \textit{x}, un membro dell'ufficio decide l'applicazione di uno sconto. Questo meccanismo viene mappato da un \textit{user task} seguito da un \textit{exclusive gateway}. Il preventivo finale viene poi spedito al cliente e l'ufficio si mette in attesa con un \textit{event based gateway}.
+
+Gli \textit{intermediate event} mappati
+sono tre: o un \textit{catching message intermediate event}, che
+corrisponde alla risposta del cliente, oppure un
+\textit{timer intermediate event}, che corrisponde alla scadenza di un
+timer fissato ad un tempo \textit{y}.
+===========
+
+Nel caso non vengano accettate come compatibili, viene eseguito un
+\textit{message end event}, che corrisponde all'invio al cliente di una
+notifica di annullamento dell'ordine.
+In caso le customizzazioni vengano accettate, si passa ad un altro
+\textit{exclusive gateway}, che smista gli ordini nelle due categorie
+previste: ordini che contengono cicli e ordini che contengono
+componenti.
+Questo passaggio serve a determinare il costo di spedizione che verr\`a
+addebitato al cliente.
+
+In caso l'ordine contenga un ciclo, il prezzo di spedizione viene
+calcolato prendendo come parametri l'indirizzo del cliente e quello del
+magazzino primario: questo perch\'e i cicli vengono assemblati
+all'interno del magazzino primario.
+
+Nel caso l'ordine contenga delle componenti, si effettuer\`a una ricerca
+\linebreak all'interno di tutti i magazzini (utilizzando la lane della gestione
+magazzini), per ogni componente. Un \textit{exclusive gateway} mappa i
+due possibili esiti: se la componente viene trovata in uno o pi\`u
+magazzini, il costo di spedizione si baser\`a sull'indirizzo del cliente
+e quello del magazzino pi\`u vicino al cliente che contiene la
+componente; nel caso la componente non venga trovata, il costo di
+spedizione viene calcolato in base all'indirizzo del cliente e a quello
+del magazzino primario, dato che il fornitore spedisce solamente a
+quello.
+Le componenti vengono riservate, qualora si trovino in un magazzino, ma
+non vengono ordinate al fornitore nel caso non ci siano.
+
+Se scade il timer, si comunica la magazzino di rilasciarele componenti e
+si arriva ad un \textit{message end event}, che corrisponde all'invio
+della notifica di annullamento dell'ordine al cliente. Nel caso il
+cliente invii una risposta, un \textit{exclusive gateway} mappa le due
+possibili risposte: accettazione o rifiuto del preventivo. Nel caso di
+rifiuto, si attua la stessa procedura descritta nel caso della scadenza
+del timer.
+
+L'ufficio si mette poi in attesa dell'acconto dal cliente, con un
+\textit{timer boundary event}, che avvia la procedura di annullamento
+dell'ordine vista in precedenza, dopo la scadenza di un tempo
+\textit{y}. L'acconto viene mandato dal cliente sotto forma di un
+bonifico: se tale bonifico \`e inferiore ad un decimo della somma
+indicata dal preventivo finale, viene avviata la procedura di
+annullamento vista in precedenza; altrimenti il bonifico viene mandato
+alla \textit{collapsed pool} dell'istituto di credito.
+
+In base all'esito sulla verifica della solvibilit\`a del bonifico
+comunicato \linebreak dall'istituto di credito, l'ufficio decide se annullare
+l'ordine seguendo la procedura indicata in precedenza oppure procedere.
+Questo meccanismo viene implementato da un \textit{exclusive gateway}.
+
+Ricevuto l'esito positivo dall'istituto di credito, un
+\textit{exclusive gateway} consente di smistare gli ordini nelle due
+categorie gi\`a incontrate: cicli e componenti. Il processo viene dunque
+spostato nella \textit{lane} della gestione del magazzino.
+
+Nel caso l'ordine contenga un ciclo, si controlla la presenza delle
+componenti nel magazzino primario, una per volta. Un
+\textit{exclusive gateway} mappa le due possibilit\`a: o la componente
+viene trovata, oppure non viene trovata.
+Se non viene trovata si cerca all'interno dei magazzini secondari:
+anche in questo caso un \textit{exclusive gateway} mappa i due risultati
+possibili. Se viene trovata la si spedisce al magazzino primario,
+altrimenti la si ordina. Viene dunque mandato un ordine alla
+\textit{collapsed pool} del fornitore, il quale provvede a spedire la
+componente al magazzino primario. Quando tutte le componenti sono
+arrivate al magazzino primario, si procede alla fase di assemblaggio,
+nella \textit{lane} dell'officina. L'officina assembla il ciclo, prepara
+la spedizione e si affida alla ditta di spedizioni.
+
+Nel caso l'ordine contenga delle componenti si verifica tramite un
+\textit{exclusive gateway} che siano gi\`a state riservate; nel caso non
+sia cos\`i, le componenti vengono ordinate al fornitore, con la
+procedura vista in precedenza. Quando tutte le componenti sono presenti,
+anche se sparse in diversi magazzini, vengono preparate alla consegna e
+date alla ditta di spedizioni.
+
+Quando all'officina arriva la notifica di consegna avvenuta, catturata
+da un \textit{catching message boundary event}, il processo torna
+all'ufficio.
+
+L'ufficio riparte dall'attesa del saldo, affidandosi ad un
+\textit{event based gateway}. Gli eventi che l'ufficio attende sono due:
+un \textit{catching message intermediate event}, che rappresenta
+l'arrivo del saldo dal cliente, oppure un
+\textit{timer intermediate event}, che rappresenta la fine di un'attesa
+fissata ad un tempo \textit{y}. Se scade il timer, viene inviata una
+notifica all'ufficio legale, per poi terminare il processo.
+Se invece arriva il saldo dal cliente, lo si invia all'istituto di
+credito, aspettando l'esito. Un \textit{exclusive gateway} basato
+sull'esito della verifica del bonifico indirizza il processo a due
+possibili terminazioni: se l'esito \`e negativo, si invia una notifica
+all'ufficio legale e poi si termina; se l'esito \`e positivo, il
+processo termina senza ulteriori passaggi.
