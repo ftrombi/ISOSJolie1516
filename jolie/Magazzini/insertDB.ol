@@ -35,10 +35,10 @@ main {
   scope ( insertTable ) {
     install ( SQLException => println@Console("Errore in insert magazzino")() );
     updateRequest =
-      "INSERT INTO magazzino(id, nazione, provincia, citta, via, cap) VALUES" + 
-      "(1, 'italia', 'pr', 'parma', 'tanara', '43100')," + 
-      "(2, 'italia', 'bo', 'bologna', 'irnerio', '40126')," +
-      "(3, 'italia', 'mi', 'milano', 'statuto', '20122')"
+      "INSERT INTO magazzino(id, provincia, citta) VALUES" + 
+      "(0, 'pr', 'parma')," + 
+      "(1, 'bo', 'bologna')," +
+      "(2, 'mi', 'milano')"
     update@Database( updateRequest )( ret )
   };
 
@@ -46,15 +46,15 @@ main {
     install ( SQLException => println@Console("Errore in insert pezzo_magazzino")() );
     updateRequest =
       "INSERT INTO pezzo_magazzino(id_pezzo, id_magazzino, quantita, riservati) VALUES" +
+      "(0, 0, 5, 0),"
+      "(1, 0, 3, 0),"
+      "(2, 0, 2, 0),"
       "(0, 1, 5, 0),"
-      "(1, 1, 3, 0),"
-      "(2, 1, 2, 0),"
-      "(0, 2, 5, 0),"
-      "(5, 2, 3, 0),"
-      "(6, 2, 2, 0),"
-      "(4, 3, 5, 0),"
-      "(3, 3, 3, 0),"
-      "(5, 3, 2, 0)"
+      "(5, 1, 3, 0),"
+      "(6, 1, 2, 0),"
+      "(4, 2, 5, 0),"
+      "(3, 2, 3, 0),"
+      "(5, 2, 2, 0)"
   };
 
 

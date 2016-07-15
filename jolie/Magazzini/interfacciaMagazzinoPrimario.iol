@@ -2,6 +2,7 @@ include "dataTypes.iol"
 
 interface InterfacciaMagazzinoPrimario {
 	RequestResponse:
-	verificaDisponibilitaERiservaPezzi ( Ordine )( InformazioniSpedizioni ),
-	eseguoOrdine ( Ordine )( ConfermeSpedizioni )
+	verificaDisponibilitaERiservaPezzi ( Ordine )( Booleano ),
+	eseguoOrdine ( Ordine )( ArrayBooleani ),
+  verificaDisponibilitaPezziNelDBERiservaDisponibili (Ordine)(Prodotto)
 }
