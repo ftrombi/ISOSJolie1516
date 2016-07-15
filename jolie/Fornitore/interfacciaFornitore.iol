@@ -2,6 +2,6 @@ include "../Magazzini/dataTypes.iol"
 
 interface InterfacciaFornitore {
 	RequestResponse:
-  richiestaRiservaPezzi( Prodotto ) ( ArrayBooleani )
+  richiestaRiservaPezzi( Intero ) ( Booleano ),
   annullaRiservaPezzi( Prodotto )( ArrayBooleani )
 }

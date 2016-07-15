@@ -8,7 +8,7 @@ main {
     .password = "";
     .host = "";
     .port = 5434;
-    .database = "file:db/DB_magazzinoPrincipale"; // "." for memory-only
+    .database = "file:db/DB_magazzinoPrimario"; // "." for memory-only
     .driver = "hsqldb_embedded"
   };
 

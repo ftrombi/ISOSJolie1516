@@ -7,6 +7,10 @@ type Prodotto:void {
   .pezzi*:int
 }
 
+type Intero:void {
+  .valore:int
+}
+
 type Cliente:void {
   .nome:string
   .cognome:string

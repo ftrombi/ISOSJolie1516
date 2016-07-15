@@ -1,4 +1,6 @@
 include "console.iol"
+include "time.iol"
+include "string_utils.iol"
 include "interfacciaFornitore.iol"
 
 inputPort input{
@@ -18,16 +20,14 @@ main
 {
 	[richiestaRiservaPezzi( prodotto ) ( risultatoRiserva ) {
     scope( richiestaRiservaPezzi ) {
-      for (i = 0, i < #prodotto.pezzi, ++i) {
-        risultatoRiserva[i] = true
-      }
+        risultatoRiserva.valore = true
     }
   }] {daStampare = "Eseguita richiestaRiservaPezzi"; log}
 
   [annullaRiservaPezzi( prodotto ) ( esitoAnnullamento ) {
     scope( annullaRiservaPezzi ) {
       for (i = 0, i < #prodotto.pezzi, ++i) {
-        esitoAnnullamento[i] = true
+        esitoAnnullamento.booleano[i] = true
       }
     }
   }] {daStampare = "Eseguita annullaRiservaPezzi"; log}

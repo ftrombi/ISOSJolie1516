@@ -3,10 +3,13 @@ include "string_utils.iol"
 include "console.iol"
 include "math.iol"
 include "time.iol"
+include "ini_utils.iol"
 include "database.iol"
+include "../ServizioDistanza/DistanceInterface.iol"
+include "../Fornitore/interfacciaFornitore.iol"
 
-/*include "../ServizioDistanza/DistanceInterface.iol"
-include "../Fornitore/SupplierInterface.iol"
+/*
+
 include "../Corriere/CorriereInterface.iol"*/
 
 inputPort InputOrdine {
@@ -21,6 +24,17 @@ outputPort MagazzinoPrimario {
 	Interfaces: InterfacciaMagazzinoPrimario
 }
 
+outputPort CalcoloDistanze {
+  Location: "socket://localhost:8100"
+  Protocol: http
+  Interfaces: DistanceInterface
+}
+
+outputPort Fornitore {
+  Location: "socket://localhost:8300"
+  Protocol: http
+  Interfaces: InterfacciaFornitore
+}
 /*
 outputPort MagazzinoSecondario1 {
 	Location: "socket://localhost:8001"
@@ -28,17 +42,8 @@ outputPort MagazzinoSecondario1 {
 	Interfaces: InterfMagazzinoSecondario
 }
 
-outputPort CalcoloDistanze {
-	Location: "socket://localhost:8100"
-	Protocol: http
-	Interfaces: DistanceInterface
-}
 
-outputPort SupplierServer {
-	Location: "socket://localhost:8300"
-	Protocol: http
-	Interfaces: SupplierInterface
-}
+
 
 outputPort CorriereServer{
 	Location: "socket://localhost:8400"
@@ -102,7 +107,7 @@ define inizializzaInfoMagazzini {
       for(i = 0, i < #queryResponse.row, ++i) {
         magazzini[i].id = queryResponse.row[i].ID;
         magazzini[i].provincia = queryResponse.row[i].PROVINCIA;
-        magazzini[i].citta = queryResponse.row[i].CITTA;
+        magazzini[i].citta = queryResponse.row[i].CITTA
       }
     };
     disconnettiDB
@@ -116,97 +121,114 @@ init {
 	leggiImpostazioni;
 	inizializzaInfoMagazzini;
 
-	magazzinoPrimario << magazzini[0];
+	magazzinoPrimario << magazzini[0]
 }
 
 main {
 
 	[verificaDisponibilitaERiservaPezzi ( ordine )( risultato ){
 		scope( verificaDisponibilitaERiservaPezzi ){
-      indiceArray = 0;
-      for (i = 0, i < #ordine.prodotti, ++i){
-        for (j = 0, i < #ordine.prodotti[i].pezzi, ++i){
-          pezziNecessari[indiceArray] = ordine.prodotti[i].pezzi[j];
-          ++indiceArray
-        }
-      }
       verificaDisponibilitaPezziNelDBERiservaDisponibili@MagazzinoPrimario(ordine)(idPezziMancanti);
-      if(#idPezziMancanti > 0){
-        richiestaRiservaPezzi@Fornitore(idPezziMancanti)(confermaRiservaAvvenuta);
-        for (i = 0, i < #confermaRiservaAvvenuta, ++i){
-          if (confermaRiservaAvvenuta[i] == false)
-            risultato = confermaRiservaAvvenuta[i]
+      risultato.valore = true;
+      daStampare = "#idPezziMancanti.pezzi " + #idPezziMancanti.pezzi; log;
+      for (i = 0, i < #idPezziMancanti.pezzi, i++) {
+        pezzoMancante.valore = idPezziMancanti.pezzi[i];
+        daStampare = "pezzoMancante " + pezzoMancante.valore; log;
+        richiestaRiservaPezzi@Fornitore(pezzoMancante)(confermaRiservaAvvenuta);     
+        if (confermaRiservaAvvenuta.valore == false){
+          risultato.valore = false
         }
       }
+      /*if(#idPezziMancanti.pezzi > 0){
+        daStampare = "Tornato da funzione fornitore"; log
+        for (i = 0, i < #confermaRiservaAvvenuta.booleano, ++i){
+          if (confermaRiservaAvvenuta.booleano[i] == false)
+            risultato.valore = confermaRiservaAvvenuta.booleano[i]
+        }
+      }*/
 		}
 	}] {daStampare = "Eseguita verificaDisponibilitaERiservaPezzi"; log}
 
   [verificaDisponibilitaPezziNelDBERiservaDisponibili (ordine)(idPezziMancanti) {
     scope(verificaDisponibilitaPezziNelDBERiservaDisponibili) {
-      connettiDB;
       indiceArray = 0;
       for (i = 0, i < #ordine.prodotti, ++i){
         pezziDiUnCiclo = false;
-        if (#ordine.prodotti[i].pezzi > 1){
-          pezziDiUnCiclo = true;
-        }
+        if (#ordine.prodotti[i].pezzi > 0){
+          pezziDiUnCiclo = true
+        };
+        daStampare = "Pezzi di un ciclo " + #ordine.prodotti[i].pezzi; log;
         for (j = 0, j < #ordine.prodotti[i].pezzi, ++j){
           scope(selection) {
+            daStampare = "Pezzo query request " + ordine.prodotti[i].pezzi[j]; log;
+            
+            connettiDB;
             queryRequest = 
               "SELECT id_pezzo, id_magazzino, quantita, riservati FROM pezzo_magazzino " + 
               "WHERE id_pezzo = :id_pez AND quantita > riservati";
             queryRequest.id_pez = ordine.prodotti[i].pezzi[j];
             query@Database( queryRequest )( queryResponse );
+            daStampare = "Eseguita query request"; log;
+            disconnettiDB;
+
             idMagazzinoPiuVicino = null;
             distanzaMagazzinoPiuVicino = null;
-            numeroRiservatiMagazzinoPiuVicino = null;
-            for(i = 0, i < #queryResponse.row, ++i) {
-              richiestaDistanza.origin.citta = magazzini[queryResponse.row[i].ID_MAGAZZINO].citta;
-              richiestaDistanza.origin.provincia = magazzini[queryResponse.row[i].ID_MAGAZZINO].provincia;
+            numeroRiservatiMagazzinoPiuVicino = null; 
+            quantitaMagazzinoPiuVicino = null;
+            
+            for(k = 0, k < #queryResponse.row, ++k) {
+              daStampare = "Query Response: " + queryResponse.row[k].ID_MAGAZZINO + " riservati " + queryResponse.row[i].RISERVATI; log;
+              richiestaDistanza.origin.citta = magazzini[queryResponse.row[k].ID_MAGAZZINO].citta;
+              richiestaDistanza.origin.provincia = magazzini[queryResponse.row[k].ID_MAGAZZINO].provincia;
               richiestaDistanza.destination.citta = ordine.cliente.indirizzo.citta;
               richiestaDistanza.destination.provincia = ordine.cliente.indirizzo.provincia;
               getBestDistance@CalcoloDistanze( richiestaDistanza ) ( rispostaDistanza );
               if (rispostaDistanza.status == "OK") {
+                daStampare = "Distanza: " + rispostaDistanza.distance; log;
                 if (distanzaMagazzinoPiuVicino == null){
-                  idMagazzinoPiuVicino = queryResponse.row[i].ID_MAGAZZINO;
+                  idMagazzinoPiuVicino = queryResponse.row[k].ID_MAGAZZINO;
                   distanzaMagazzinoPiuVicino = rispostaDistanza.distance;
-                  numeroRiservatiMagazzinoPiuVicino = queryResponse.row[i].RISERVATI;
+                  numeroRiservatiMagazzinoPiuVicino = queryResponse.row[k].RISERVATI;
+                  quantitaMagazzinoPiuVicino = queryResponse.row[k].QUANTITA
                 } else {
                   if (distanzaMagazzinoPiuVicino > rispostaDistanza.distance){
-                    idMagazzinoPiuVicino = queryResponse.row[i].ID_MAGAZZINO;
+                    idMagazzinoPiuVicino = queryResponse.row[k].ID_MAGAZZINO;
                     distanzaMagazzinoPiuVicino = rispostaDistanza.distance;
-                    numeroRiservatiMagazzinoPiuVicino = queryResponse.row[i].RISERVATI;
+                    numeroRiservatiMagazzinoPiuVicino = queryResponse.row[k].RISERVATI;
+                    quantitaMagazzinoPiuVicino = queryResponse.row[k].QUANTITA
                   }
                 }
               }
-            }
+            };
+            daStampare = "Distanza più vicino: " + distanzaMagazzinoPiuVicino; log;
+            daStampare = "ID più vicino: " + idMagazzinoPiuVicino; log;
+            daStampare = "Numero riservati più vicino: " + numeroRiservatiMagazzinoPiuVicino; log;
             if( idMagazzinoPiuVicino == null ) {
-              idPezziMancanti[indiceArray] = ordine.prodotti[i].pezzi[j];
-              ++indiceArray;
+              idPezziMancanti.pezzi[indiceArray] = ordine.prodotti[i].pezzi[j];
+              ++indiceArray
             } else {
-              scope(update) {
-                undef( updateRequest );
-                updateRequest =
-                      "UPDATE pezzo_magazzino " + 
-                      "SET riservati = :riservato " + 
-                      "WHERE id_magazzino = :id_magaz AND id_pezzo = :id_pez)";
-                  updateRequest.riservato = numeroRiservatiMagazzinoPiuVicino + 1;
-                  updateRequest.id_magaz = idMagazzinoPiuVicino;
-                  updateRequest.id_pez = ordine.prodotti[i].pezzi[j];
-                  update@Database( updateRequest )( ret )
-              }
+              connettiDB;
+              undef( updateRequest );
+              updateRequest = "UPDATE pezzo_magazzino SET riservati = :riservati WHERE id_pezzo = :id_pez AND id_magazzino = :id_magaz";
+              updateRequest.riservati = (numeroRiservatiMagazzinoPiuVicino + 1);
+              updateRequest.id_magaz = idMagazzinoPiuVicino + 0;
+              updateRequest.id_pez = ordine.prodotti[i].pezzi[j] + 0;
+              update@Database( updateRequest )( ret );
+
+              daStampare = "Uscito UPDATE sul db " + ret; log;
+              disconnettiDB
             }
           }
         }
-      }
-      disconnettiDB
+      };
+      idPezziMancanti.pezzi[0] = 0
     }
   }] {daStampare = "Eseguita verificaDisponibilitaPezzi"; log}
-
+/*
 	[eseguoOrdine ( Ordine )( ConfermeSpedizioni ) {
 		scope( eseguoOrdine ) {
 			
 		}
 	}] {daStampare = "Eseguita eseguoOrdine"; log}
-
+*/
 }
