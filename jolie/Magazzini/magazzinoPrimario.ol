@@ -214,9 +214,10 @@ main {
 
   [annullamentoOrdine ( ordine )( risultato ) {
     scope( annullamentoOrdine ) {
-      daStampare = "Eseguito inizio annullamentoOrdine"; log
-      /*rilascioPezziRiservatiNelDB(ordine)(idPezziMancanti);
+      daStampare = "Eseguito inizio annullamentoOrdine"; log;
       risultato.valore = true;
+      rilascioPezziRiservatiNelDB(ordine)(idPezziMancanti)
+      /*risultato.valore = true;
       daStampare = "#idPezziMancanti.pezzi " + #idPezziMancanti.pezzi; log;
       for (i = 0, i < #idPezziMancanti.pezzi, i++) {
         pezzoMancante.valore = idPezziMancanti.pezzi[i];
