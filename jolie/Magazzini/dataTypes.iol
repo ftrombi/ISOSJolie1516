@@ -11,6 +11,12 @@ type Intero:void {
   .valore:int
 }
 
+type ProdottoIDMagazzinoCliente:void {
+  .idMagazzino:int
+  .pezzo:int
+  .destinatario:Cliente
+}
+
 type Cliente:void {
   .nome:string
   .cognome:string
@@ -20,10 +26,6 @@ type Cliente:void {
 type Indirizzo:void {
   .provincia:string
   .citta:string
-}
-
-type ArrayBooleani:void {
-  .booleano*:bool
 }
 
 type Booleano:void{

@@ -25,9 +25,13 @@ main {
       "(1, 'faro', TRUE)," +
       "(2, 'sterzo', FALSE)," +
       "(3, 'sellino', FALSE)," +
-      "(4, 'ruota', FALSE)," +
+      "(4, 'cerchione', FALSE)," +
       "(5, 'catena', FALSE)," +
-      "(6, 'casco', TRUE)";
+      "(6, 'telaio', FALSE)," +
+      "(7, 'manubrio', TRUE)," +
+      "(8, 'camera aria', TRUE)," +
+      "(9, 'gomme', FALSE)," +
+      "(10, 'casco', TRUE)";
     update@Database( updateRequest )( ret );
     nullProcess
   };
