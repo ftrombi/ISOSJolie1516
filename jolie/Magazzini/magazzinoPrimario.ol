@@ -428,9 +428,23 @@ main {
           }
         }
       };
+      if( necessarioMontaggio == true ) {
+        prodottoECliente.cliente << ordine.cliente;
+        prodottoECliente.prodotti[0] << ordine.prodotti[i];
+        assemblaCicloESpedisci@MagazzinoPrimario(prodottoECliente)(esito)
+      };
       confermaSpedizioni.valore = true
 		}
 	}] {daStampare = "Eseguita eseguoOrdine"; log}
+
+  [ assemblaCicloESpedisci( prodottoECliente )( esitoTotale ){
+    scope( assemblaCicloESpedisci ) {
+      daStampare = "Ciclo assemblato"; log;
+      richiestaSpedizione@Corriere(prodottoECliente)(esito);
+      esitoTotale << esito
+    }
+  }] {daStampare = "Eseguita assemblaCicloESpedisci"; log}
+
 
   [ spedisciDaMagazzini (prodottoIDMagazzinoDestinatario)(esitoTotale){
     scope( spedisciDaMagazzini ) {

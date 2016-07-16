@@ -7,5 +7,6 @@ interface InterfacciaMagazzinoPrimario {
   verificaDisponibilitaPezziNelDBERiservaDisponibili (Ordine)(Prodotto),
   annulloOrdine (Ordine)(Booleano),
   spedisciDaMagazzini(ProdottoIDMagazzinoCliente)(Booleano),
-  richiestaSpedizione( Ordine )( Booleano )
+  richiestaSpedizione( Ordine )( Booleano ),
+  assemblaCicloESpedisci( Ordine )( Booleano )
 }
