@@ -31,4 +31,16 @@ main
       esitoAnnullamento.valore = true
     }
   }] {daStampare = "Eseguita annullaRiservaPezzi"; log}
+
+  [richiestaSpedizione( ordine ) ( esitoSpedizione ) {
+    println@Console(
+      "Richiesta di spedizione a " + ordine.cliente.nome +
+      " " + ordine.cliente.cognome +
+      " accettata. Confermata spedizione verso " + ordine.cliente.indirizzo.citta +
+      " (" + ordine.cliente.indirizzo.provincia + ")."
+    )();
+    scope( richiestaSpedizione ) {
+      esitoSpedizione.valore = true
+    }
+  }] {daStampare = "Eseguita richiestaSpedizione"; log}
 }
