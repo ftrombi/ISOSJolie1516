@@ -1,5 +1,5 @@
 include "../Magazzini/dataTypes.iol"
-interface CorriereInterface {
+interface InterfacciaCorriere {
 	RequestResponse:
   richiestaSpedizione( Ordine )( Booleano )
 }

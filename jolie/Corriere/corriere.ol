@@ -1,10 +1,10 @@
 include "console.iol"
-include "CorriereInterface.iol"
+include "interfacciaCorriere.iol"
 
 inputPort input{
 	Location: "socket://localhost:8400"
 	Protocol: http 
-	Interfaces: CorriereInterface
+	Interfaces: InterfacciaCorriere
 }
 
 execution{ concurrent }
