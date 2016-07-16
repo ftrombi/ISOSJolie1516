@@ -5,7 +5,7 @@ include "interfacciaMagazzinoSecondario.iol"
 include "../Corriere/interfacciaCorriere.iol"
 
 inputPort input{
-  Location: "socket://localhost:8001"
+  Location: "socket://localhost:8002"
   Protocol: soap 
   Interfaces: InterfacciaMagazzinoSecondario
 }
