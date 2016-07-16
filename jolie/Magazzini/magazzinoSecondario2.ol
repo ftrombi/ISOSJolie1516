@@ -29,7 +29,7 @@ main
     scope( richiestaSpedizione ) {
       richiestaSpedizione@Corriere(ordine)(esitoRichiesta);
       esitoSpedizione << esitoRichiesta;
-      if ( esitoSpedizione == true ) {
+      if ( esitoSpedizione.valore == true ) {
         daStampare = "Il corriere ha confermato la spedizione."; log
       } else {
         daStampare = "Problema nella spedizione!"; log

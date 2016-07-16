@@ -14,14 +14,13 @@ main{
   ordine.cliente.indirizzo.citta = "Collecchio";
   ordine.cliente.indirizzo.provincia = "PR";
 
-  ordine.prodotti[0].pezzi[0] = 0;
-  ordine.prodotti[0].pezzi[1] = 1;
-  ordine.prodotti[1].pezzi[0] = 2;
-  ordine.prodotti[1].pezzi[1] = 3;
-  ordine.prodotti[1].pezzi[2] = 4;
+  ordine.prodotti[0].pezzi[0] = 7;
+  ordine.prodotti[1].pezzi[0] = 8;
+  ordine.prodotti[1].pezzi[1] = 9;
+  ordine.prodotti[1].pezzi[2] = 10;
 
   verificaDisponibilitaERiservaPezzi@MagazzinoPrimario ( ordine )( risultato );
-  annulloOrdine@MagazzinoPrimario ( ordine )( risultato );
+  eseguoOrdine@MagazzinoPrimario ( ordine )( risultato );
   
   println@Console(risultato)()
 }

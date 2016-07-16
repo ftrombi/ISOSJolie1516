@@ -17,7 +17,7 @@ main
       " " + ordine.cliente.cognome +
       " spedita correttamente presso " + ordine.cliente.indirizzo.citta +
       " (" + ordine.cliente.indirizzo.provincia + ")."
-    );
-    esito = true
+    )();
+    esito.valore = true
 	}]{ println@Console("Eseguita richiestaSpedizione")() }
 }
