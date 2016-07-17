@@ -24,7 +24,7 @@ cliente, contenente il rifiuto dell'ordine. Tale azione viene
 implementata tramite un \textit{send task}. Eseguito questo, il processo
 termina.
 Nel caso le customizzazioni siano invece compatibili, il flusso del
-processo passa nella \textit{lane} della Gestione Magazzini.
+processo passa nella \textit{lane} della gestione magazzini.
 
 Viene verificata la disponibilit\`a dei pezzi che compongono l'ordine:
 un \textit{exclusive gateway} divide il flusso del processo nei due
@@ -56,7 +56,7 @@ all'assemblaggio, viene riservato nel magazzino pi\`u vicino
 all'officina.
 
 Uscito dal \textit{subprocess}, il flusso del processo torna nella
-\textit{lane} dell'Ufficio, dove viene composto il preventivo per il
+\textit{lane} dell'ufficio, dove viene composto il preventivo per il
 cliente.
 Nel caso il preventivo superi una certa cifra \textit{x} \`e previsto
 che venga applicata una percentuale di sconto: un membro dell'ufficio
@@ -82,55 +82,84 @@ Tale \textit{collapsed subprocess} porta poi al termine del processo.
 Se l'utente invia invece l'accettazione del preventivo, si verifica che
 abbia pagato la caparra, tramite un \textit{collapsed subprocess}
 chiamato ``Verifica pagamento'', descritto in seguito. Tale
-\textit{collapsed subprocess} comunica con la \textit{lane}
-dell'Istituto di credito ed ha una scadenza fissata a quindici giorni.
+\textit{collapsed subprocess} comunica con la \textit{pool}
+dell'istituto di credito ed ha una scadenza fissata a quindici giorni.
 Se questi quindici giorni passano senza che il cliente abbia pagato, il
 flusso del processo va nel \textit{collapsed subprocess} ``Annullamento
 ordine''; altrimenti, un \textit{exclusive gateway} permette di
 controllare se l'importo della caparra \`e maggiore od uguale ad un
 decimo del totale. Se \`e cos\`i, allora si procede; altrimenti si va
 al \textit{collapsed subprocess} ``Annullamento ordine''.
-===================
-Ricevuto l'esito positivo dall'istituto di credito, un
-\textit{exclusive gateway} consente di smistare gli ordini nelle due
-categorie gi\`a incontrate: cicli e componenti. Il processo viene dunque
-spostato nella \textit{lane} della gestione del magazzino.
 
-Nel caso l'ordine contenga un ciclo, si controlla la presenza delle
-componenti nel magazzino primario, una per volta. Un
-\textit{exclusive gateway} mappa le due possibilit\`a: o la componente
-viene trovata, oppure non viene trovata.
-Se non viene trovata si cerca all'interno dei magazzini secondari:
-anche in questo caso un \textit{exclusive gateway} mappa i due risultati
-possibili. Se viene trovata la si spedisce al magazzino primario,
-altrimenti la si ordina. Viene dunque mandato un ordine alla
-\textit{collapsed pool} del fornitore, il quale provvede a spedire la
-componente al magazzino primario. Quando tutte le componenti sono
-arrivate al magazzino primario, si procede alla fase di assemblaggio,
-nella \textit{lane} dell'officina. L'officina assembla il ciclo, prepara
-la spedizione e si affida alla ditta di spedizioni.
+Si controllano i pezzi necessari: un \textit{exclusive gateway} mappa le
+due possibili situazioni, cio\`e se ci sono pezzi da ordinare oppure se
+non ci sono. Se ci sono, viene preparata una richiesta da inviare al
+fornitore, che contiene l'elenco dei pezzi mancanti. Fatto questo, si
+entra in un \textit{collapsed subprocess}, chiamato ``Ricezione pezzi
+ordinati'', descritto successivamente.
 
-Nel caso l'ordine contenga delle componenti si verifica tramite un
-\textit{exclusive gateway} che siano gi\`a state riservate; nel caso non
-sia cos\`i, le componenti vengono ordinate al fornitore, con la
-procedura vista in precedenza. Quando tutte le componenti sono presenti,
-anche se sparse in diversi magazzini, vengono preparate alla consegna e
-date alla ditta di spedizioni.
+Fatto tutto questo il flusso del processo passa ad un altro
+\textit{parallel collapsed subprocess}, chiamato ``Preparazione ordine e
+spedizione'', descritto successivamente. Questo \textit{subprocess} si
+occupa della preparazione degli ordini e della loro spedizione,
+comunicando con la \textit{lane} dell'officina e con la \textit{pool}
+della ditta di spedizioni.
 
-Quando all'officina arriva la notifica di consegna avvenuta, catturata
-da un \textit{catching message boundary event}, il processo torna
-all'ufficio.
+Si torna poi alla \textit{lane} dell'ufficio, con un \textit{send task}
+che si occupa di preparare e spedire la conferma della spedizione.
+L'ufficio si mette poi in attesa del pagamento, utilizzando il
+\textit{collapsed subrocess} di verifica del pagamento visto in
+precedenza. Se, come prima, passano quindici giorni, si va verso un
+\textit{send task} che si occupa di inviare all'ufficio legale una
+notifica di pagamento errato e si termina il processo. Se invece la
+verifica del pagamento va a buon fine, si controlla tramite un
+\textit{exclusive gateway} se l'importo \`e corretto. Se la risposta
+\`e affermativa, l'ordine viene archiviato e il processo finisce; se la
+risposta \`e negativa si va al \textit{task} descritto in precedenza che
+si occupa di notificare il pagamento errato all'ufficio legale e si
+termina il processo.
 
-L'ufficio riparte dall'attesa del saldo, affidandosi ad un
-\textit{event based gateway}. Gli eventi che l'ufficio attende sono due:
-un \textit{catching message intermediate event}, che rappresenta
-l'arrivo del saldo dal cliente, oppure un
-\textit{timer intermediate event}, che rappresenta la fine di un'attesa
-fissata ad un tempo \textit{y}. Se scade il timer, viene inviata una
-notifica all'ufficio legale, per poi terminare il processo.
-Se invece arriva il saldo dal cliente, lo si invia all'istituto di
-credito, aspettando l'esito. Un \textit{exclusive gateway} basato
-sull'esito della verifica del bonifico indirizza il processo a due
-possibili terminazioni: se l'esito \`e negativo, si invia una notifica
-all'ufficio legale e poi si termina; se l'esito \`e positivo, il
-processo termina senza ulteriori passaggi.
+\subsection{\textit{Collapsed subprocess}}
+Durante la descrizione del processo principale dell'azienda ACME si sono
+nominati alcuni \textit{collapsed subprocess}: in seguito vengono
+spiegati pi\`u nel dettaglio. I \textit{collapsed subprocess} trattati
+sono i seguenti:
+\begin{itemize}
+  \item ``Annullamento ordine'';
+  \item ``Ricezione pezzi ordinati'';
+  \item ``Preparazione ordine e spedizione'';
+  \item ``Verifica pagamento''.
+\end{itemize}
+\subsubsection{Annullamento ordine}
+Il \textit{suprocess} inizia dalla \textit{lane} dell'ufficio, ma passa
+subito a quella della gestione magazzini: qui vengono rilasciati i pezzi
+riservati con un \textit{parallel task}. Il flusso del processo torna
+poi all'ufficio, dove viene preparato e spedito un messaggio di
+annullamento dell'ordine alla \textit{pool} del cliente.
+\subsubsection{Ricezione pezzi ordinati}
+Il \textit{subprocess} parte dalla \textit{lane} della gestione
+magazzini. Arrivati i pezzi, vengono sistemati e il \textit{subprocess}
+termina.
+\subsubsection{Preparazione ordine e spedizione}
+Il \textit{parallel subprocess} parte dalla \textit{lane} della gestione
+magazzini, con un \textit{task} che si occupa del controllo della
+tipologia del pezzo. I casi sono due: o il pezzo \`e una componente
+atomica (o un accessorio) oppure una componente da assemblare.
+
+Se si tratta una componente atomica o un accessorio, viene preparato un
+pacco dal magazzino pi\`u vicino al cliente, poi viene preparata una
+richiesta di spedizione con un \textit{send task}; dopo la ricezione
+della conferma della spedizione, si conclude il \textit{subprocess}.
+
+Se invece \`e una componente da assemblare, viene inviato alla
+\textit{lane} dell'officina. Qui viene assemblato il ciclo, poi tramite
+un \textit{send task} si effettua la richiesta di spedizione alla ditta
+di spedizione. Ricevuta la conferma, il \textit{subprocess} termina.
+\subsubsection{Verifica pagamento}
+Il \textit{subprocess} parte dalla \textit{lane} dell'ufficio, dove un
+\textit{send task} si occupa di preparare e spedire la richiesta di
+verifica di pagamento alla \textit{pool} dell'istituto di credito. Viene
+attesa la risposta e se ne controlla il contenuto: se il pagamento \`e
+stato effettuato, il \textit{subprocess} termina; altrimenti si
+attendono ventiquattro ore e si effettua di nuovo la richiesta.
+
