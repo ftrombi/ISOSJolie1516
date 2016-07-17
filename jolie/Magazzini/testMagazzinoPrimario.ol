@@ -20,6 +20,7 @@ main{
   ordine.prodotti[1].pezzi[2] = 10;
 
   verificaDisponibilitaERiservaPezzi@MagazzinoPrimario ( ordine )( risultato );
+  // annulloOrdine (ordine)(risultato);
   eseguoOrdine@MagazzinoPrimario ( ordine )( risultato );
   
   println@Console(risultato)()

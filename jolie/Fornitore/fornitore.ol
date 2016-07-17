@@ -16,29 +16,31 @@ define log {
   println@Console(ts + " - " + daStampare)()
 }
 
+init {
+  daStampare = "Inizio procedura Fornitore"; log
+}
+
 main
 {
 	[richiestaRiservaPezzi( prodotto ) ( risultatoRiserva ) {
-    println@Console( "Richiesta riserva pezzi accolta." )();
+    daStampare = "Richiesta riserva pezzi accolta."; log;
     scope( richiestaRiservaPezzi ) {
         risultatoRiserva.valore = true
     }
   }] {daStampare = "Eseguita richiestaRiservaPezzi"; log}
 
   [annullaRiservaPezzi( prodotto ) ( esitoAnnullamento ) {
-    println@Console( "Riserva pezzi annullata correttamente." )();
+    daStampare = "Riserva pezzi annullata correttamente."; log;
     scope( annullaRiservaPezzi ) {
       esitoAnnullamento.valore = true
     }
   }] {daStampare = "Eseguita annullaRiservaPezzi"; log}
 
   [richiestaSpedizione( ordine ) ( esitoSpedizione ) {
-    println@Console(
-      "Richiesta di spedizione a " + ordine.cliente.nome +
+    daStampare = "Richiesta di spedizione a " + ordine.cliente.nome +
       " " + ordine.cliente.cognome +
       " accettata. Confermata spedizione verso " + ordine.cliente.indirizzo.citta +
-      " (" + ordine.cliente.indirizzo.provincia + ")."
-    )();
+      " (" + ordine.cliente.indirizzo.provincia + ")."; log;
     scope( richiestaSpedizione ) {
       esitoSpedizione.valore = true
     }

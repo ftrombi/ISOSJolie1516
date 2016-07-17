@@ -1,5 +1,6 @@
 include "console.iol"
 include "math.iol"
+include "time.iol"
 include "interfacciaCredito.iol"
 
 inputPort input{
@@ -8,7 +9,16 @@ inputPort input{
 	Interfaces: InterfacciaCredito
 }
 
+define log {
+  getCurrentDateTime@Time(null)(ts); 
+  println@Console(ts + " - " + daStampare)()
+}
+
 execution { concurrent }
+
+init {
+  daStampare = "Inizio procedura Istituto di credito"; log
+}
 
 main
 {
@@ -16,19 +26,15 @@ main
 		random@Math()( r );
 		if ( r <= 0.3 ) {
 			esito.valore = false;
-			println@Console(
-				"Il cliente " + infoPagamento.cliente.nome +
+			daStampare = "Il cliente " + infoPagamento.cliente.nome +
 				" " + infoPagamento.cliente.cognome +
-				" non ha effettuato correttamente il pagamento."
-			)()
+				" non ha effettuato correttamente il pagamento."; log
 		}
 		else {
 			esito.valore = true;
-			println@Console(
-				"Il cliente " + infoPagamento.cliente.nome +
+			daStampare = "Il cliente " + infoPagamento.cliente.nome +
 				" " + infoPagamento.cliente.cognome +
-				" ha effettuato correttamente il pagamento."
-			)()
+				" ha effettuato correttamente il pagamento."; log
 		}
-	}]{ println@Console( "Invocata richiestaVerifica" )() }
+	}]{ daStampare = "Invocata richiestaVerifica"; log }
 }

@@ -37,10 +37,3 @@ main
     }
   }] {daStampare = "Eseguita richiestaSpedizione"; log}
 }
-
-/*println@Console(
-      "Richiesta di spedizione a " + ordine.cliente.nome +
-      " " + ordine.cliente.cognome +
-      " accettata. Confermata spedizione verso " + ordine.cliente.indirizzo.citta +
-      " (" + ordine.cliente.indirizzo.provincia + ")."
-    )();*/

@@ -129,6 +129,7 @@ main {
 
 	[verificaDisponibilitaERiservaPezzi ( ordine )( risultato ){
 		scope( verificaDisponibilitaERiservaPezzi ){
+      daStampare = "===== Inizio verificaDisponibilitaERiservaPezzi ====="; log;
       verificaDisponibilitaPezziNelDBERiservaDisponibili@MagazzinoPrimario(ordine)(idPezziMancanti);
       risultato.valore = true;
       for (i = 0, i < #idPezziMancanti.pezzi, i++) {
@@ -140,10 +141,11 @@ main {
         daStampare = "Pezzo " + pezzoMancante.valore + " ordinato al fornitore"; log
       }
 		}
-	}] {daStampare = "Eseguita verificaDisponibilitaERiservaPezzi"; log}
+	}] {daStampare = "===== Eseguita verificaDisponibilitaERiservaPezzi ====="; log}
 
   [verificaDisponibilitaPezziNelDBERiservaDisponibili (ordine)(idPezziMancanti) {
     scope(verificaDisponibilitaPezziNelDBERiservaDisponibili) {
+      daStampare = "===== Inizio verificaDisponibilitaPezziNelDBERiservaDisponibili ====="; log;
       indiceArray = 0;
       for (i = 0, i < #ordine.prodotti, ++i){
         necessarioMontaggio = false;
@@ -152,8 +154,7 @@ main {
         };
         for (j = 0, j < #ordine.prodotti[i].pezzi, ++j){
           scope(selection) {
-            daStampare = "Pezzo richiesto " + ordine.prodotti[i].pezzi[j]; log;
-            
+            daStampare = "Richiesto il pezzo " + ordine.prodotti[i].pezzi[j]; log;
             connettiDB;
             queryRequest = 
               "SELECT id_pezzo, id_magazzino, quantita, riservati FROM pezzo_magazzino " + 
@@ -161,14 +162,12 @@ main {
             queryRequest.id_pez = ordine.prodotti[i].pezzi[j];
             query@Database( queryRequest )( queryResponse );
             disconnettiDB;
-
             idMagazzinoPiuVicino = null;
             distanzaMagazzinoPiuVicino = null;
             numeroRiservatiMagazzinoPiuVicino = null; 
             quantitaMagazzinoPiuVicino = null;
-            
             for(k = 0, k < #queryResponse.row, ++k) {
-              daStampare = "Trovati " + queryResponse.row[k].QUANTITA + " nel magazzino: " + queryResponse.row[k].ID_MAGAZZINO + ", di cui riservati " + queryResponse.row[i].RISERVATI; log;
+              daStampare = "Trovati " + queryResponse.row[k].QUANTITA + " pezzi nel magazzino: " + queryResponse.row[k].ID_MAGAZZINO + ", di cui riservati: " + queryResponse.row[k].RISERVATI; log;
               richiestaDistanza.origin.citta = magazzini[queryResponse.row[k].ID_MAGAZZINO].citta;
               richiestaDistanza.origin.provincia = magazzini[queryResponse.row[k].ID_MAGAZZINO].provincia;
               if (necessarioMontaggio == true) {
@@ -196,11 +195,10 @@ main {
                 }
               }
             };
-            daStampare = "Magazzino più vicino: " + idMagazzinoPiuVicino; log;
-            daStampare = "Distanza più vicino: " + distanzaMagazzinoPiuVicino; log;
-            daStampare = "Numero riservati più vicino: " + numeroRiservatiMagazzinoPiuVicino; log;
+            daStampare = "Quindi il magazzino più vicino è: " + idMagazzinoPiuVicino; log;
+            daStampare = "distante: " + distanzaMagazzinoPiuVicino; log;
             if( idMagazzinoPiuVicino == null ) {
-              daStampare = "Non era riservato in nessun magazzino"; log;
+              daStampare = "Pezzo non presente in nessun magazzino"; log;
               idPezziMancanti.pezzi[indiceArray] = ordine.prodotti[i].pezzi[j];
               ++indiceArray
             } else {
@@ -211,19 +209,18 @@ main {
               updateRequest.id_magaz = idMagazzinoPiuVicino + 0;
               updateRequest.id_pez = ordine.prodotti[i].pezzi[j] + 0;
               update@Database( updateRequest )( ret );
-
-              daStampare = "Elemento riservato sul db "; log;
+              daStampare = "Elemento riservato sul db"; log;
               disconnettiDB
             }
           }
         }
       }
     }
-  }] {daStampare = "Eseguita verificaDisponibilitaPezzi"; log}
+  }] {daStampare = "===== Eseguita verificaDisponibilitaPezzi ====="; log}
 
   [annulloOrdine (ordine)(risultato){
     scope (annulloOrdine){
-      daStampare = "Inizio ad annullare l'ordine"; log;
+      daStampare = "===== Inizio ad annullare l'ordine ====="; log;
       indiceArray = 0;
       for (i = 0, i < #ordine.prodotti, ++i){
         necessarioMontaggio = false;
@@ -232,7 +229,6 @@ main {
         };
         for (j = 0, j < #ordine.prodotti[i].pezzi, ++j){
           daStampare = "Pezzo da annullare " + ordine.prodotti[i].pezzi[j]; log;
-
           connettiDB;
           queryRequest = 
             "SELECT id_pezzo, id_magazzino, quantita, riservati FROM pezzo_magazzino " + 
@@ -240,14 +236,12 @@ main {
           queryRequest.id_pez = ordine.prodotti[i].pezzi[j];
           query@Database( queryRequest )( queryResponse );
           disconnettiDB;
-
           idMagazzinoPiuVicino = null;
           distanzaMagazzinoPiuVicino = null;
           numeroRiservatiMagazzinoPiuVicino = null; 
           quantitaMagazzinoPiuVicino = null;
-          
           for(k = 0, k < #queryResponse.row, ++k) {
-            daStampare = "Trovati " + queryResponse.row[k].QUANTITA + " nel magazzino: " + queryResponse.row[k].ID_MAGAZZINO + ", di cui riservati " + queryResponse.row[i].RISERVATI; log;
+            daStampare = "Trovati " + queryResponse.row[k].QUANTITA + " pezzi nel magazzino: " + queryResponse.row[k].ID_MAGAZZINO + ", di cui riservati: " + queryResponse.row[k].RISERVATI; log;
             richiestaDistanza.origin.citta = magazzini[queryResponse.row[k].ID_MAGAZZINO].citta;
             richiestaDistanza.origin.provincia = magazzini[queryResponse.row[k].ID_MAGAZZINO].provincia;
             if (necessarioMontaggio == true) {
@@ -287,7 +281,6 @@ main {
             updateRequest.id_magaz = idMagazzinoPiuVicino + 0;
             updateRequest.id_pez = ordine.prodotti[i].pezzi[j] + 0;
             update@Database( updateRequest )( ret );
-
             daStampare = "Cancellata la riserva del pezzo "; log;
             disconnettiDB
           }
@@ -300,14 +293,14 @@ main {
         if (confermaRiservaAvvenuta.valore == false){
           risultato.valore = false
         };
-        daStampare = "Annullato dal fornitore il pezzo " + pezzoMancante.valore; log
+        daStampare = "Annullato dal fornitore la riserva del pezzo " + pezzoMancante.valore; log
       }
     }
-  }] {daStampare = "Eseguita annulloOrdine"; log}
+  }] {daStampare = "===== Eseguita annulloOrdine ====="; log}
 
 	[eseguoOrdine ( ordine )( confermaSpedizioni ) {
 		scope( eseguoOrdine ) {
-			daStampare = "Inizio ad eseguire l'ordine"; log;
+      daStampare = "===== Inizio ad eseguire l'ordine ====="; log;
       for (i = 0, i < #ordine.prodotti, ++i){
         necessarioMontaggio = false;
         if (#ordine.prodotti[i].pezzi > 1){
@@ -358,7 +351,7 @@ main {
             }
           };
           if( idMagazzinoPiuVicino == null ) {
-            daStampare = "Non era riservato in nessun magazzino"; log;
+            daStampare = "Non era riservato in nessun magazzino, richiedo pezzo al fornitore."; log;
             if(necessarioMontaggio == true){
               ordineSpedizione.cliente.nome = "Officina";
               ordineSpedizione.cliente.cognome = "ACME";
@@ -367,7 +360,7 @@ main {
               ordineSpedizione.prodotti[0].pezzi[0] = ordine.prodotti[i].pezzi[j];
               richiestaSpedizione@Fornitore(ordineSpedizione)(esito);
               if(esito.valore==true){
-                daStampare = "Spedizione all'officina confermata"; log;
+                daStampare = "Spedizione all'officina confermata."; log;
                 connettiDB;
                 undef( updateRequest );
                 updateRequest = "INSERT INTO pezzo_magazzino(id_pezzo, id_magazzino, quantita, riservati) VALUES" +
@@ -377,7 +370,7 @@ main {
                 updateRequest.quantita = 5;
                 updateRequest.riservati = 0;
                 update@Database( updateRequest )( ret );
-                daStampare = "Inseriti i 5 elementi spediti dal fornitore nel database"; log;
+                daStampare = "Inseriti i 5 elementi spediti dal fornitore nel database."; log;
                 disconnettiDB
               }
             } else {
@@ -385,7 +378,7 @@ main {
               ordineSpedizione.prodotti[0].pezzi[0] = ordine.prodotti[i].pezzi[j];
               richiestaSpedizione@Fornitore(ordineSpedizione)(esito);
               if(esito.valore==true){
-                daStampare = "Spedizione al cliente confermata"; log
+                daStampare = "Spedizione al cliente confermata."; log
               }
             }
           } else {
@@ -399,7 +392,7 @@ main {
               updateRequest.id_magaz = idMagazzinoPiuVicino + 0;
               updateRequest.id_pez = ordine.prodotti[i].pezzi[j] + 0;
               update@Database( updateRequest )( ret );
-              daStampare = "Ridotta la quantita del pezzo di un'unita"; log
+              daStampare = "Ridotta la quantita del pezzo di un'unità sul db"; log
             } else {
               updateRequest = "DELETE FROM pezzo_magazzino WHERE id_pezzo = :id_pez AND id_magazzino = :id_magaz";              
               updateRequest.id_magaz = idMagazzinoPiuVicino + 0;
@@ -408,47 +401,47 @@ main {
               daStampare = "Cancellato elemento dal db"; log
             };
             disconnettiDB;
-            daStampare = "necessarioMontaggio " + necessarioMontaggio; log;
             if( necessarioMontaggio == true ) {
+              daStampare = "Necessario montaggio."; log;
               prodottoIDMagazzinoDestinatario.pezzo = ordine.prodotti[i].pezzi[j];
               prodottoIDMagazzinoDestinatario.idMagazzino = idMagazzinoPiuVicino;
               prodottoIDMagazzinoDestinatario.destinatario.nome = "Officina";
               prodottoIDMagazzinoDestinatario.destinatario.cognome = "ACME";
               prodottoIDMagazzinoDestinatario.destinatario.indirizzo.provincia = officina.provincia;
               prodottoIDMagazzinoDestinatario.destinatario.indirizzo.citta = officina.citta;
-              daStampare = "Prima di spedisci dai magazzini"; log;
               spedisciDaMagazzini@MagazzinoPrimario (prodottoIDMagazzinoDestinatario)(esito)
             } else {
+              daStampare = "Non necessario montaggio."; log;
               prodottoIDMagazzinoDestinatario.pezzo = ordine.prodotti[i].pezzi[j];
               prodottoIDMagazzinoDestinatario.idMagazzino = idMagazzinoPiuVicino;
               prodottoIDMagazzinoDestinatario.destinatario << ordine.cliente;
-              daStampare = "Prima di spedisci dai magazzini"; log;
               spedisciDaMagazzini@MagazzinoPrimario (prodottoIDMagazzinoDestinatario)(esito)
             }
           }
         }
       };
       if( necessarioMontaggio == true ) {
+        daStampare = "Necessario montaggio del ciclo."; log;
         prodottoECliente.cliente << ordine.cliente;
         prodottoECliente.prodotti[0] << ordine.prodotti[i];
         assemblaCicloESpedisci@MagazzinoPrimario(prodottoECliente)(esito)
       };
       confermaSpedizioni.valore = true
 		}
-	}] {daStampare = "Eseguita eseguoOrdine"; log}
+	}] {daStampare = "===== Eseguito ordine ====="; log}
 
   [ assemblaCicloESpedisci( prodottoECliente )( esitoTotale ){
     scope( assemblaCicloESpedisci ) {
       daStampare = "Ciclo assemblato"; log;
       richiestaSpedizione@Corriere(prodottoECliente)(esito);
+      daStampare = "Ciclo spedito"; log;
       esitoTotale << esito
     }
-  }] {daStampare = "Eseguita assemblaCicloESpedisci"; log}
+  }] {daStampare = "===== Eseguita assemblaCicloESpedisci ====="; log}
 
 
   [ spedisciDaMagazzini (prodottoIDMagazzinoDestinatario)(esitoTotale){
     scope( spedisciDaMagazzini ) {
-      daStampare = "Dentro a spedisciDaMagazzini"; log;
       if(prodottoIDMagazzinoDestinatario.idMagazzino == 0){
         ordineSpedizione.cliente << prodottoIDMagazzinoDestinatario.destinatario;
         ordineSpedizione.prodotti[0].pezzi[0] = prodottoIDMagazzinoDestinatario.pezzo;
@@ -477,7 +470,7 @@ main {
         esitoTotale.valore = false
       }
     }
-  }] {daStampare = "Eseguita spedisciDaMagazzini"; log}
+  }] {daStampare = "===== Eseguita spedizione dai magazzini ====="; log}
 
   [richiestaSpedizione( ordine ) ( esitoSpedizione ) {
     scope( richiestaSpedizione ) {
@@ -489,5 +482,5 @@ main {
         daStampare = "Problema nella spedizione!"; log
       }
     }
-  }] {daStampare = "Eseguita richiestaSpedizione"; log}
+  }] {daStampare = "===== Eseguita richiestaSpedizione ====="; log}
 }
