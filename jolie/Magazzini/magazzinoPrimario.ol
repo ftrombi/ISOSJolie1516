@@ -138,7 +138,7 @@ main {
         if (confermaRiservaAvvenuta.valore == false){
           risultato.valore = false
         };
-        daStampare = "Pezzo " + pezzoMancante.valore + " ordinato al fornitore"; log
+        daStampare = "Pezzo " + pezzoMancante.valore + " prenotato al fornitore"; log
       }
 		}
 	}] {daStampare = "===== Eseguita verificaDisponibilitaERiservaPezzi ====="; log}
