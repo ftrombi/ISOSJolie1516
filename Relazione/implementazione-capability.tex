@@ -7,9 +7,9 @@ con la SOA costruita per la gestione del magazzino.
 
 \subsubsection*{Istituto di credito}
 L'istituto di credito ha un'interfaccia semplificata, definita nel file
-{\tt interfCredito.iol}, come si pu\`o vedere in figura. \\\\
+{\tt interfacciaCredito.iol}, come si pu\`o vedere in figura. \\\\
 \includegraphics[scale=0.5]{immagini/interfCredito.png}\\
-L'unica operazione viene implementata nel file {\tt creditoServer.ol}:
+L'unica operazione viene implementata nel file {\tt credito.ol}:
 dopo aver ricevuto un bonifico, viene deciso l'esito della verifica
 scegliendo un numero casuale (grazie all'interfaccia {\tt Math} di
 Jolie). Se il numero scelto \`e minore o uguale di {\tt 0.3}, l'esito
@@ -37,25 +37,32 @@ Nel particolare, il servizio contiene una {\tt outputPort} verso il
 servizio di distanze di Google Maps, con protocollo
 {\tt http \{.method = ``get''\}}.
 
-
 \subsubsection*{Ditta di spedizioni}
 La ditta di spedizioni ha un'intefaccia semplificata, definita nel file
-{\tt interfCorriere.iol}, come si pu\`o vedere in figura. \\\\
+{\tt interfacciaCorriere.iol}, come si pu\`o vedere in figura. \\\\
 \includegraphics[scale=0.5]{immagini/interfCorriere.png}\\
-L'unica operazione viene implementata nel file {\tt corriereServer.ol},
+L'unica operazione viene implementata nel file {\tt corriere.ol},
 che compone una stringa formattata utilizzando i campi dell'input di
-tipo {\tt OrdineSpedizione}.
+tipo {\tt Ordine}.
 Il file contiene inoltre una {\tt inputPort}, in ascolto sulla porta
 {\tt 8400} con protocollo {\tt http}.
-Nel file {\tt corriereTypes.iol} vengono definiti i tipi utilizzati.
 
 \subsubsection*{Fornitore}
-Il fornitore ha un'intefaccia semplificata, definita nel file
-{\tt interfFornitore.iol}, come si pu\`o vedere in figura. \\\\
+Il fornitore ha un'intefaccia leggermente pi\`u complicata di quelle
+delle altre capability. Essa viene definita nel file
+{\tt interfacciaFornitore.iol}, come si pu\`o vedere in figura. \\\\
 \includegraphics[scale=0.5]{immagini/interfFornitore.png}\\
-L'unica operazione viene implementata nel file {\tt fornitoreServer.ol},
-che compone una stringa formattata utilizzando i campi dell'input di
-tipo {\tt OrdineComponente}.
+Si hanno dunque tre operazioni, che vengono descritte nel dettaglio in
+seguito:
+\begin{itemize}
+  \item {\tt richiestaRiservaPezzi}: si occupa di gestire una riserva
+  sui pezzi che servono all'ACME, simulando un sistema di prenotazioni
+  non vincolate all'ordine effettivo;
+  \item {\tt richiestaSpedizione}: nel caso il fornitore abbia
+  nell'ordine un pezzo atomico, egli non lo mander\`a alla ACME, ma lo
+  spedir\`a direttamente al cliente;
+  \item {\tt annullaRiservaPezzi}: si occupa di un annullamento fittizio
+  della riserva sui pezzi prenotati.
+\end{itemize}
 Il file contiene inoltre una {\tt inputPort}, in ascolto sulla porta
 {\tt 8300} con protocollo {\tt http}.
-Nel file {\tt fornitoreTypes.iol} vengono definiti i tipi utilizzati.

@@ -1,88 +1,113 @@
 \subsection{BPMS: Camunda}
 Il meccanismo di interazione tra il sistema (in altre parole, l'azienda
 ACME) e l'utente \`e stata gestita tramite la piattaforma Camunda.
-Si sono creati due progetti:
-\begin{enumerate}
-  \item {\tt CamundaProject};
-  \item {\tt UserWebEndPoint}.
-\end{enumerate}
-{\tt CamundaProject} contiene il diagramma BPMN, creato grazie al
-software {\it Camunda Modeler}, l'implementazione Java delle azioni
-descritte nel diagramma stesso  e i form che permettono di dare un
-formato regolare alle richieste degli utenti. In altre parole,
-implementa la logica del server.
-{\tt UserWebEndpoint} contiene invece una {\it servlet} che permette di
-lanciare i processi (cio\`e, in questo caso, gli ordini).
+Per implementare tale meccanismo si \`e partiti da una versione
+semplificata dal BPMN descritto in precedenza, in modo tale da poter
+correttamente inserire gli elementi necessari a Camunda e nascondere le
+parti dello schema implementate dalla SOA di servizi Jolie, dunque non
+gestita da Camunda.
 
-La servlet implementata \`e la {\tt SendOrderRequest}, che simula
-l'invio di un ordine da parte di un utente al sistema. Esistono tre
-tipologie di ordini possibili, mappate attraverso il parametro
-{\tt value}:
-\begin{enumerate}
-  \item ordine contenente {\it n} cicli, con $n > 0$;
-  \item ordine contenente {\it n} componenti, con $n > 0$;
-  \item ordine contenente {\it n} cicli e $m$ componenti, con
-  $n > 0 \land m > 0$.
-\end{enumerate}
-L'ordine viene implementato attraverso un messaggio.
-Le prime due tipologie di ordine contengono una lista di
-customizzazioni: per esempio la customizzazione di un componente
-potrebbe essere il colore del componente stesso.
+Come prima cosa il cliente deve avviare il processo, inviando un ordine
+tramite la pagina HTML che simula la grafica e le meccaniche del sito
+internet della ACME.
+Il cliente deve autenticarsi all'interno del sito e comporre un ordine.
+Una volta controllato che un ordine sia coerente, cio\`e che tutti i
+prodotti richiesti esistano e che tutte le customizzazioni richieste
+siano compatibili, allora il sistema invia una email al cliente che
+l'ordine \`e stato preso in carico.
+Si \`e deciso di utilizzare come identificativo dell'ordine, in tutti
+questi passaggi, l'ID del processo Camunda, poich\'e garantisce
+univocit\`a certa.
+Le comunicazioni con il cliente sono state tutte implementate tramite
+l'invio di email: l'indirizzo viene infatti ricavato dai dati di login
+utilizzati dal cliente stesso all'interno del sito.
 
-L'invio del messaggio di avvio a Camunda \`e possibile perch\'e siamo
-sullo stesso server: si applica infatti la tecnica {\it injection}, che
-permette di prendere una risorsa interna al server ed ``iniettarla''
-all'interno del processo.
-In questo caso viene iniettata una variabile di tipo
-{\tt ProcessEngine}, che \`e una risorsa di Camunda: tale variabile
-viene utilizzata per inviare il messaggio a tutti i servizi in attesa:
-se esso contiene l'id {\tt start}, il servizio che lo riceve istanzia un
-processo.
+Informato il cliente dell'accettazione dell'ordine, si delega il lavoro
+alla SOA di servizi Jolie descritta nel dettaglio in seguito.
+Per comunicare con i servizi Jolie addetti alla gestione del magazzino
+\`e stato necessario utilizzare il protocollo {\tt soap}, implementando
+classi apposite ({\tt package: it.unibo.isos.soap}). Tali classi
+permettono di gestire le comunicazioni tra ufficio e magazzino
+correttamente.
 
-Si esaminano ora i vari passaggi effettuati dal processo, dalla
-ricezione \linebreak dell'ordine fino alla sua conclusione.
+Dalla SOA di servizi Jolie arrivano spesso dei messaggi utili agli
+utilizzatori del sistema: per esempio, quando viene composto il
+preventivo della vendita, se esso supera una certa cifra, viene
+richiesto ad un operatore se si desidera imporre uno sconto, in
+percentuale.
+Tale meccanismo viene gestito da Camunda con il sistema degli
+\textit{User Task}.
+\begin{figure}
+  \includegraphics[scale=0.6]{immagini/camunda_percentuale_sconto.PNG}
+  \captionsetup{labelformat=empty}
+  \caption{Decisione della percentuale di sconto.}
+\end{figure}
 
-Per prima cosa viene analizzata la tipologia di ordine: se \`e della
-terza tipologia indicata in precedenza, genera tanti messaggi quanti
-sono gli ordini presenti e lancia un ugual numero di processi. Fatto
-ci\`o termina. Se invece si ha a che fare con un ordine singolo, si
-procede.
+Concluso questo passaggio, il cliente riceve una email contenente il
+preventivo e due link: uno per accettare il prezzo proposto dalla ACME,
+un altro per rifiutare lo stesso.
+Entrambi i link puntano ad una {\tt servlet} che si occupa di inviare un
+messaggio al processo che gestisce l'ordine del cliente.
 
-Si controlla la presenza di customizzazioni, seguendo i passaggi
-indicati nel diagramma BPMN. \`E importante notare che il processo
-memorizza le informazioni legate all'ordine all'interno di variabili
-d'ambiente. Il controllo sulla compatibilit\`a delle customizzazioni
-viene effettuata tramite una decisione pseudo-randomica (con una
-probabilit\`a di successo del 90\%), presa su tutto l'insieme delle
-customizzazioni.
+Effettuati i vari passaggi legati all'accettazione del preventivo, viene
+gestito, tramite \textit{subprocess}, il corretto pagamento della
+caparra. Per simulare un sistema realistico senza dover attendere intere
+ore prima di verificare un pagamento, si \`e deciso di utilizzare timer
+nell'ordine dei minuti.
+Dopo \textit{n} minuti, infatti, tali subprocess controllano se il
+cliente ha effettuato il pagamento.
+Intorno a questo timer di verifica ne \`e stato implementato uno pi\`u
+lungo, che controlla che il pagamento avvenga entro il tempo utile per
+validare l'ordine.
 
-Dopo aver controllato la tipologia di ordine, il sistema si comporta
-come descritto nel diagramma BPMN; successivamente viene calcolato il
-prezzo di spedizione, basato su un valore arbitrario. Viene composto un
-preventivo e presentato in formato XML, predisposto dunque per eventuali
-visualizzazioni all'interno di siti internet o altre piattaforme. Se il
-costo totale del preventivo supera i 2500\euro{}, si forza l'utente
-{\tt john} alla visione di un form ed egli decider\`a se modificare il
-prezzo. Il preventivo finale viene dunque spedito. \\\\
-\includegraphics[scale=0.5]{immagini/formCamunda.png}\\
-Si attende poi l'attesa della conferma del preventivo da parte
-dell'utente. Si noti che i messaggi tra utente e sistema non sono stati
-gestiti, a causa di una serie di problemi elencati nelle conclusioni.
-L'implementazione dello svolgimento di questi dialoghi \`e stata
-affrontata nel seguente modo: viene fissato il timeout dell'attesa a due
-minuti, mentre all'invio della risposta viene assegnato un timeout di un
-minuto o di tre minuti. Naturalmente, la risposta verr\`a ricevuta solo
-nel primo caso.
-Tale meccanismo viene utilizzato per tutte le interazioni con l'utente.
-Tornando alla conferma del preventivo, l'utente (fittizio) pu\`o
-rispondere anche con un rifiuto, tramite una decisione pseudo-randomica
-come visto in precedenza.
+Come ultimo passaggio, la SOA di servizi Jolie si occupa di amministrare
+tutto ci\`o che \`e connesso all'assemblaggio, alla spedizione e alla
+gestione delle quantit\`a di prodotti nei magazzini, interagendo con le
+varie capability esterne descritte successivamente.
 
-Il resto del processo prevede l'interazione con i servizi Jolie, come
-descritti nella sezione apposita.
+Infine avviene il controllo del pagamento del saldo da parte del
+cliente: se tutto \`e andato a buon fine, viene inviata una email al
+cliente per comunicare l'esito positivo e si archivia l'ordine. Nel caso
+ci siano invece stati dei problemi legati al pagamento del saldo, viene
+notificato l'ufficio legale.
 
-Infine \`e necessario soffermarsi su due sotto-progetti di servizio,
-\linebreak {\tt CommonObjects} e {\tt JolieWrapper}. {\tt CommonObjects}
-contiene le classi per la serializzazione e la deserializzazione degli
-ordini, mentre {\tt JolieWrapper} contiene la gestione dell'interazione
-con i servizi Jolie.
+\subsubsection{Servizio e-mail}
+Componente interessante di questo sistema \`e il servizio per l'invio
+delle email, fondamentali nell'interazione con il cliente ed ottima
+approssimazione delle comunicazioni cliente-azienda che avvengono nel
+mondo reale.
+Il servizio utilizzato, gratuito per un basso numero di email, \`e
+\textit{mailgun} ({\tt www.mailgun.com}): per utilizzarlo vengono
+fornite delle API, alle quali il sistema si interfaccia tramite la
+classe {\tt SendMail}.
+Nelle immagini si possono trovare alcuni esempi di email inviate dal
+sistema.
+\newpage
+\begin{figure}
+  \includegraphics[scale=0.7]{immagini/email_annullamento_ordine.PNG}
+  \captionsetup{labelformat=empty}
+  \caption{Email di annullamento di un ordine.}
+\end{figure}
+\begin{figure}
+  \includegraphics[scale=0.7]{immagini/email_preventivo.PNG}
+  \captionsetup{labelformat=empty}
+  \caption{Email di preventivo di un ordine.}
+\end{figure}
+\begin{figure}
+  \includegraphics[scale=0.7]{immagini/email_incompatibilita.PNG}
+  \captionsetup{labelformat=empty}
+  \caption{Email di un ordine con customizzazioni non compatibili.}
+\end{figure}
+\newpage
+\subsubsection{User task}
+Grazie all'implementazione di diversi user task \`e possibile per i
+membri dell'ufficio avere una panoramica del sistema abbastanza
+completa. Inn particolare sono stati implementati user task per:
+\begin{itemize}
+  \item ricezione di un nuovo ordine;
+  \item annullamento di un ordine;
+  \item accettazione/rifiuto di un ordine da parte di un cliente;
+  \item spedizione di un ordine;
+  \item archiviazione di un ordine;
+  \item segnalazione di problemi connessi al pagamento di un ordine.
+\end{itemize}
